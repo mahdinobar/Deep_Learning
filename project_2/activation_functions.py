@@ -2,7 +2,7 @@ import torch
 from module import *
 
 
-class Relu():
+class Relu(Module):
     """
     Class for ReLU activation function
     """
@@ -17,7 +17,7 @@ class Relu():
         temp = torch.zeros_like(x)
         return torch.max(x, temp)
 
-    def backward(self, y):  #TODO check
+    def backward(self, y):
         """
         Backward computation of ReLU
         :param y:
@@ -30,7 +30,7 @@ class Relu():
         return temp
 
 
-class Tanh():
+class Tanh(Module):
     """
     Class for tanh activation function
     """
@@ -40,17 +40,17 @@ class Tanh():
         :param x: input
         :return: result of tanh forward pass
         """
-        self.x = x
+        self.previous_x = x
 
         return torch.tanh(x)
 
-    def backward(self, y): #TODO check
+    def backward(self, y):
         """
         Backward computation of tanh
         :param y:
         :return: result of tanh backward pass
         """
-        return (1 - torch.tanh(self.x)**2)*y
+        return (1 - self.previous_x.tanh().pow(2)) * y
 
 
 

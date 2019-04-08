@@ -3,7 +3,7 @@ from module import *
 
 
 class Linear(Module):
-    def __init__(self, input_dim, output_dim, w0, b0):
+    def __init__(self, input_dim, output_dim):
         """
         Class of Linear module
         :param input_dim:
@@ -14,8 +14,8 @@ class Linear(Module):
         self.output_dim = output_dim
 
         # weights and biases
-        self.w = w0
-        self.b = b0
+        self.w = torch.empty(output_dim, input_dim).normal_()
+        self.b = torch.empty(1, output_dim).normal_()
         # Weights and biases gradient
         self.dl_dw = torch.empty(self.w.size())
         self.dl_db = torch.empty(self.b.size())
@@ -26,8 +26,8 @@ class Linear(Module):
         :param x:
         :return:
         """
-        self.x = x
         output = x.mm(self.w.t()) + self.b
+        self.x = x
         return output
 
     def backward(self, y):
@@ -36,10 +36,12 @@ class Linear(Module):
         :param y:
         :return:
         """
-        self.dl_dw = y.t().mm(self.x)
-        self.dl_db = y.sum(0).view(1, -1)
+        dl_dw = y.t().mm(self.x)
+        dl_db = y.sum(0).view(1, -1)
         dl_dx = y.mm(self.w)
 
+        self.dl_dw = dl_dw
+        self.dl_db = dl_db
         return dl_dx
 
     def param(self):
@@ -64,7 +66,8 @@ class Sequential(Module):
         for module in self.modules:
             # forward pass of each module
             x = module.forward(x)
-        return x
+        x_out = x
+        return x_out
 
     def backward(self, y):
         """
@@ -72,10 +75,9 @@ class Sequential(Module):
         :param y:
         :return:
         """
-        for module in self.modules:
+        for module in reversed(self.modules):
             # backward pass of each module
             y = module.backward(y)
-        return y
 
     def param(self):
         """
@@ -85,5 +87,4 @@ class Sequential(Module):
         all_parameters = []
         for module in self.modules:
             all_parameters.extend(module.param())
-
         return all_parameters

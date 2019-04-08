@@ -2,16 +2,18 @@ import torch
 
 
 class SGD():
-    def __init__(self, model, lr, momentum=0):
+    """ SGD optimization """
+    def __init__(self, model, learning_rate, momentum=0):
+        super(SGD, self).__init__()
         self.model = model
-        self.lr = lr
+        self.learning_rate = learning_rate
         self.momentum = momentum
         self.momentum_buffer = {}
 
     def step(self):
         for param in self.model.param():
-            if p not in self.momentum_buffer.key():
-                self.momentum_buffer[param] = torch.FloatTensor(param[0].size()).zero_()
-            self.momentum_buffer[param] = self.momentum_buffer[param].mul_(self.momentum).add_(self.lr*param[1])
-            param[0].sub_(self.momentum_buffer[param])
-
+            if param[0] not in self.momentum_buffer.keys():
+                self.momentum_buffer[param[0]] = torch.empty(param[0].size()).zero_()
+            self.momentum_buffer[param[0]] = self.momentum_buffer[param[0]].mul_(self.momentum).\
+                add_(self.learning_rate * param[1])
+            param[0].sub_(self.momentum_buffer[param[0]])

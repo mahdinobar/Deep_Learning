@@ -32,7 +32,7 @@ class CrossEntropy_Loss(Module):
     """
     A class for cross entropy loss
     """
-    def forward(self,x,target):
+    def forward(self, x, target):
         """
         Forward pass of the cross entropy loss
 
@@ -42,12 +42,12 @@ class CrossEntropy_Loss(Module):
         Returns:
             Cross Entropy Loss
         """
-        self.x=x
-        self.target=target
-        self.N=x.size()[0]
-        exp_fyn=x.gather(1,target.view(-1,1)).exp().squeeze()
-        sigma_exp_fk=x.exp().sum(1)
-        Loss=(-1./self.N)*(sum((exp_fyn/sigma_exp_fk).log()))
+        self.x = x
+        self.target = target
+        self.N = x.size()[0]
+        exp_fyn = x.gather(1, target.view(-1, 1)).exp().squeeze()
+        sigma_exp_fk = x.exp().sum(1)
+        return (-1./self.N)*(sum((exp_fyn/sigma_exp_fk).log()))
 
     def backward(self):
         """
@@ -58,8 +58,7 @@ class CrossEntropy_Loss(Module):
                  Gradient of the cross entropy loss with respect to input
         """
 
-
-        log_der=-1*self.x.exp()/sum(self.x.exp()).view(-1,1)
+        log_der = -1 * self.x.exp()/sum(self.x.exp()).view(-1, 1)
         log_der[torch.Tensor(range(self.x.size(0))),self.target]=log_der[torch.Tensor(range(self.x.size(0))),self.target]+1
         dL_dx=-(1./self.N)*log_der
         return dL_dx
