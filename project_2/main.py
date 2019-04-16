@@ -5,6 +5,7 @@ from neural_network import Sequential, Linear
 from activation_functions import Relu, Tanh
 from losses import LossMSE
 from optimization import SGD
+from initialization import xavier_initialization
 
 
 def training(m, inputs, targets, batch_size, nb_epochs, lr):
@@ -118,6 +119,10 @@ def main():
             Tanh(),
             Linear(hidden_dim, output_dim)
         )
+
+        # Xavier initialization
+        for i in range(0, len(model.param()), 2):
+            xavier_initialization(model.param()[i][0], model.param()[i+1][0], 'relu')
 
         # --------------------------------------------------------------------------------------------------
         # TRAINING

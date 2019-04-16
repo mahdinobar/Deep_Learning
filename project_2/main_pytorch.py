@@ -63,6 +63,12 @@ def compute_error(m, inputs, targets, batch_size):
     return nb_errors
 
 
+def init_weights(m):
+    if type(m) == nn.Linear:
+        nn.init.xavier_normal_(m.weight, gain=nn.init.calculate_gain('relu'))
+        m.bias.data.fill_(0.01)
+
+
 def main():
     """ Main function """
     # --------------------------------------------------------------------------------------------------
@@ -116,6 +122,9 @@ def main():
             nn.Tanh(),
             nn.Linear(hidden_dim, output_dim),
         )
+
+        # Xavier initialization
+        model.apply(init_weights)
 
         # --------------------------------------------------------------------------------------------------
         # TRAINING
