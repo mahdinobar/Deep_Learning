@@ -21,8 +21,8 @@ def normalization(data):
     return data.sub_(mean_value).div_(std_value)
 
 
-def convert_to_one_hot_labels(target):
+def convert_to_one_hot_labels(inputs):
     """ Convert target tensor to one hot vector representation """
-    tmp = torch.FloatTensor(target.size(0), target.max() + 1).fill_(-1)
-    tmp.scatter_(1, target.view(-1, 1), 1.0)
+    tmp = torch.FloatTensor(inputs.size(0), inputs.max() + 1).fill_(0)
+    tmp.scatter_(1, inputs.view(-1, 1), 1.0)
     return tmp
