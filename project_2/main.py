@@ -3,7 +3,7 @@ import torch
 from data import generate_data, normalization, convert_to_one_hot_labels
 from neural_network import Sequential, Linear
 from activation_functions import Relu, Tanh
-from losses import LossMSE
+from losses import LossMSE, LossCross
 from optimization import SGD
 from initialization import xavier_initialization
 
@@ -19,6 +19,7 @@ def training(m, inputs, targets, batch_size, nb_epochs, lr):
     :param lr: learning rate
     :return:
     """
+    # criterion = LossMSE()
     criterion = LossMSE()
     optimizer = SGD(m, lr, momentum=0.9)
 
