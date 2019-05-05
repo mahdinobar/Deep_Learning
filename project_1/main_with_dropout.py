@@ -4,6 +4,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
+import statistics
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -113,43 +114,69 @@ def main():
     batch_size = 50
     nb_epochs = 10
     learning_rate = 5e-3
+    round_num=10
+    train_acc=[]
+    validation_acc = []
+    test_acc = []
+    for round in range(0,round_num):
+        print('------------------------------------')
+        print('Round %d %%' %round)
+        # ----- DATASET --------------------
+        train_input, train_target, train_class, validation_input, validation_target, validation_class = prologue.generate_pair_sets(nb_pair)
 
-    # ----- DATASET --------------------
-    train_input, train_target, train_class, validation_input, validation_target, validation_class = prologue.generate_pair_sets(nb_pair)
+
+        train_dataset = TensorDataset(train_input, train_class, train_target)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+        validation_dataset = TensorDataset(validation_input, validation_class, validation_target)
+        validation_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+        # ----- MODEL --------------------
+        model = Model()
+        model.train(True)
+        # Optimizer
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.99))
+
+        # Loss function
+        criterion = nn.CrossEntropyLoss()
+
+        # ----- TRAINING --------------------
+        nb_batch = nb_pair // batch_size
+        train(train_loader, model, criterion, optimizer, nb_batch, nb_epochs=nb_epochs)
+        _, _, _, test_input, test_target, test_class = prologue.generate_pair_sets(nb_pair)
+        test_dataset = TensorDataset(test_input, test_class, test_target)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+        # ----- EVALUATION --------------------
+        model_validation=model.train(False)
+        train_accuracy = compute_accuracy(model_validation, train_loader)
+        validation_accuracy = compute_accuracy(model_validation, validation_loader)
+        test_accuracy = compute_accuracy(model_validation, test_loader)
+        # print('Accuracy on train set: %d %%' % train_accuracy)
+        # print('Accuracy on validation set: %d %%' % validation_accuracy)
+        # print('Accuracy on test set: %d %%' % test_accuracy)
+        train_acc.append(train_accuracy)
+        validation_acc.append(validation_accuracy)
+        test_acc.append(test_accuracy)
+
+    train_mean = statistics.mean(train_acc)
+    train_std = statistics.stdev(train_acc)
+    validation_mean = statistics.mean(validation_acc)
+    validation_std = statistics.stdev(validation_acc)
+    test_mean = statistics.mean(test_acc)
+    test_std = statistics.stdev(test_acc)
+    print('')
+    print('Mean of accuracy on train set: %d %%' % train_mean)
+    print('Mean of accuracy on validation set: %d %%' % validation_mean)
+    print('Mean of accuracy on test set: %d %%' % test_mean)
+    print('Standard deviation of accuracy on train set: %d %%' % train_std)
+    print('Standard deviation on validation set: %d %%' % validation_std)
+    print('Standard deviation on test set: %d %%' % test_std)
 
 
-    train_dataset = TensorDataset(train_input, train_class, train_target)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-
-    validation_dataset = TensorDataset(validation_input, validation_class, validation_target)
-    validation_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-    
-    # ----- MODEL --------------------
-    model = Model()
-    model.train(True)
-    # Optimizer
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.99))
-
-    # Loss function
-    criterion = nn.CrossEntropyLoss()
-
-    # ----- TRAINING --------------------
-    nb_batch = nb_pair // batch_size
-    train(train_loader, model, criterion, optimizer, nb_batch, nb_epochs=nb_epochs)
-    _, _, _, test_input, test_target, test_class = prologue.generate_pair_sets(nb_pair)
-    test_dataset = TensorDataset(test_input, test_class, test_target)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-    # ----- EVALUATION --------------------
-    model_validation=model.train(False)
-    train_accuracy = compute_accuracy(model_validation, train_loader)
-    validation_accuracy = compute_accuracy(model_validation, validation_loader)
-    test_accuracy = compute_accuracy(model_validation, test_loader)
-    print('Accuracy on train set: %d %%' % train_accuracy)
-    print('Accuracy on validation set: %d %%' % validation_accuracy)
-    print('Accuracy on test set: %d %%' % test_accuracy)
 
 
 if __name__ == '__main__':
     main()
+
 
 print('end')
