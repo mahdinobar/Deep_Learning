@@ -87,29 +87,30 @@ def main():
     learning_rate = 1e-2
     mini_batch_size = 100
 
-    # --------------------------------------------------------------------------------------------------
-    # DATASET
-    # --------------------------------------------------------------------------------------------------
-    # Generate data
-    train_input, train_label = generate_data(nb_samples)
-    train_label = convert_to_one_hot_labels(train_label)
-
-    test_input, test_label = generate_data(nb_samples)
-    test_label = convert_to_one_hot_labels(test_label)
-
-    print('Training data dimension: ', train_input.size())
-    print('Training labels dimension: ', train_label.size())
-
-    # Normalize data
-    train_input = normalization(train_input)
-    test_input = normalization(test_input)
-
     saved_train_error = []
     saved_train_time = []
     saved_test_error = []
     saved_prediction_time = []
 
     for i in range(iteration):
+        print('\n------- ITERATION - %d -------' % (i+1))
+        # --------------------------------------------------------------------------------------------------
+        # DATASET
+        # --------------------------------------------------------------------------------------------------
+        # Generate data
+        train_input, train_label = generate_data(nb_samples)
+        train_label = convert_to_one_hot_labels(train_label)
+
+        test_input, test_label = generate_data(nb_samples)
+        test_label = convert_to_one_hot_labels(test_label)
+
+        print('Training data dimension: ', train_input.size())
+        print('Training labels dimension: ', train_label.size())
+
+        # Normalize data
+        train_input = normalization(train_input)
+        test_input = normalization(test_input)
+
         # --------------------------------------------------------------------------------------------------
         # MODEL
         # --------------------------------------------------------------------------------------------------
@@ -155,10 +156,14 @@ def main():
               .format(train_error, train_time,
                       test_error, prediction_time))
 
-    print('\nMean train error {:.02f}% --- Mean train time {:.02f}s '
-          '\nMean test error {:.02f}% --- Mean prediction time {:.08f}s'
-          .format(torch.FloatTensor(saved_train_error).mean(), torch.FloatTensor(saved_train_time).mean(),
-                  torch.FloatTensor(saved_test_error).mean(), torch.FloatTensor(saved_prediction_time).mean()))
+    print('\nTRAIN: Mean {:.02f} --- Std {:.02f} --- time {:.02f}s '
+          '\nTEST: Mean {:.02f}% --- Std {:.02f} --- time {:.08f}s'
+          .format(torch.FloatTensor(saved_train_error).mean(),
+                  torch.FloatTensor(saved_train_error).std(),
+                  torch.FloatTensor(saved_train_time).mean(),
+                  torch.FloatTensor(saved_test_error).mean(),
+                  torch.FloatTensor(saved_test_error).std(),
+                  torch.FloatTensor(saved_prediction_time).mean()))
 
 
 if __name__ == '__main__':

@@ -9,6 +9,23 @@ import torch.optim as optim
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
+def weights_init(model):
+    """
+    Weights initialization
+    :param m:
+    :return:
+    """
+    classname = model.__class__.__name__
+    if classname.find('Conv') != -1:
+        # nn.init.normal_(model.weight.data, 0.0, 0.02)
+        nn.init.xavier_normal_(model.weight)
+        # nn.init.constant_(model.bias, 0.01)
+
+    # elif classname.find('Linear') != -1:
+        # nn.init.normal_(model.weight.data, 1.0, 0.02)
+        # nn.init.constant_(model.bias.data, 0)
+
+
 def compute_accuracy(model, loader):
     """
     Compute the accuracy of the model
@@ -73,7 +90,7 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv2d(2, 16, kernel_size=5, padding=2),
+            nn.Conv2d(2, 16, kernel_size=5, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.MaxPool2d(2))
@@ -103,11 +120,15 @@ def main():
     # ----- PARAMETER --------------------
     nb_pair = 1000
     batch_size = 100
-    nb_epochs = 10
-    learning_rate = 5e-3
+    nb_epochs = 25
+    learning_rate = 2e-3
 
     # ----- DATASET --------------------
     train_input, train_target, train_class, test_input, test_target, test_class = prologue.generate_pair_sets(nb_pair)
+
+    # Normalize
+    train_input = train_input/255
+    test_input = test_input/255
 
     train_dataset = TensorDataset(train_input, train_class, train_target)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
@@ -117,6 +138,9 @@ def main():
 
     # ----- MODEL --------------------
     model = Model()
+    print(model)
+    # Initialize weights
+    # model.apply(weights_init)
 
     # Optimizer
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.99))
