@@ -33,6 +33,8 @@ class SiameseModel(nn.Module):
     """
     def __init__(self):
         super(SiameseModel, self).__init__()
+
+        # Convolutional Layer
         self.conv = nn.Sequential(
             # input -> 14x14x1
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5, padding=1),
@@ -40,16 +42,17 @@ class SiameseModel(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
             # maxpooling output -> 6x6x32
-            nn.Dropout(p=0.4),
+            nn.Dropout2d(p=0.4),
 
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, padding=1),
             # conv output -> 4x4x64
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
             # maxpooling output -> 2x2x64
-            nn.Dropout(p=0.4),
+            nn.Dropout2d(p=0.4),
         )
 
+        # Linear Layer
         self.linear = nn.Sequential(
             # linear input -> 2x2x64 = 256x1
             nn.Linear(in_features=256, out_features=64),
@@ -108,12 +111,9 @@ def train(loader, model, criterion, optimizer, nb_batch, nb_epochs):
             # Update parameters
             optimizer.step()
 
-            # Print progress
-            if (epoch + 1) % (nb_epochs/10) == 0:
-                if (batch_idx + 1) % nb_batch == 0:
-                    print('Epoch [%d/%d], Iter [%d/%d] Loss: %.4f' % (epoch + 1, nb_epochs,
-                                                                      batch_idx + 1, nb_batch,
-                                                                      losses / nb_batch))
+        # Print progress
+        if (epoch + 1) % (nb_epochs/10) == 0:
+            print('Epoch [%d/%d] --- Loss: %.4f' % (epoch + 1, nb_epochs, losses / nb_batch))
 
 
 def main():
@@ -127,8 +127,8 @@ def main():
     nb_pair = 1000
     batch_size = 10
     nb_epochs = 100
-    learning_rate = 1e-4
-    nb_iteration = 1
+    learning_rate = 1e-3
+    nb_iteration = 3
 
     saved_train_accuracy = []
     saved_test_accuracy = []
