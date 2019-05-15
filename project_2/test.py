@@ -1,9 +1,11 @@
 import time
+import matplotlib.pyplot as plt
+import matplotlib
 import torch
 from data import generate_data, normalization, convert_to_one_hot_labels
 from neural_network import Sequential, Linear
 from activation_functions import Relu, Tanh
-from losses import LossMSE, LossCrossEntropy
+from losses import MSELoss, CrossEntropyLoss
 from optimization import SGD
 from initialization import xavier_initialization
 
@@ -19,8 +21,7 @@ def training(m, inputs, targets, batch_size, nb_epochs, lr):
     :param lr: learning rate
     :return:
     """
-    # criterion = LossMSE()
-    criterion = LossMSE()
+    criterion = MSELoss()
     optimizer = SGD(m, lr, momentum=0.9)
 
     for epoch in range(nb_epochs):
@@ -67,13 +68,17 @@ def compute_error(m, inputs, targets, batch_size):
     return nb_errors
 
 
-def main():
-    """ Main function """
+def main(isplot=False):
+    """
+    Main function
+    :param isplot: if True plot the prediction and errors
+    :return:
+    """
     # --------------------------------------------------------------------------------------------------
     # PARAMETERS
     # --------------------------------------------------------------------------------------------------
     nb_samples = 1000
-    iteration = 100
+    iteration = 10
 
     # Model
     input_dim = 2
@@ -81,9 +86,9 @@ def main():
     hidden_dim = 25
 
     # Training
-    number_epochs = 250
+    nb_epochs = 200
     learning_rate = 1e-2
-    mini_batch_size = 100
+    batch_size = 100
 
     saved_train_error = []
     saved_train_time = []
@@ -99,8 +104,8 @@ def main():
         train_input, train_label = generate_data(nb_samples)
         train_label = convert_to_one_hot_labels(train_label)
 
-        test_input, test_label = generate_data(nb_samples)
-        test_label = convert_to_one_hot_labels(test_label)
+        test_input, test_label_vector = generate_data(nb_samples)
+        test_label = convert_to_one_hot_labels(test_label_vector)
 
         print('Training data dimension: ', train_input.size())
         print('Training labels dimension: ', train_label.size())
@@ -131,19 +136,19 @@ def main():
         # --------------------------------------------------------------------------------------------------
 
         start_train_time = time.time()
-        training(model, train_input, train_label, batch_size=mini_batch_size, nb_epochs=number_epochs, lr=learning_rate)
+        training(model, train_input, train_label, batch_size=batch_size, nb_epochs=nb_epochs, lr=learning_rate)
         end_train_time = time.time()
 
         # ERROR
-        train_error = compute_error(model, train_input, train_label, mini_batch_size) / train_input.size(0) * 100
+        train_error = compute_error(model, train_input, train_label, batch_size) / train_input.size(0) * 100
         saved_train_error.append(train_error)
-        test_error = compute_error(model, test_input, test_label,  mini_batch_size) / test_input.size(0) * 100
+        test_error = compute_error(model, test_input, test_label,  batch_size) / test_input.size(0) * 100
         saved_test_error.append(test_error)
 
         # Prediction time
         start_pred_time = time.time()
-        for batch in range(0, test_input.size(0), mini_batch_size):
-            prediction(model, (test_input.narrow(0, batch, mini_batch_size)))
+        for batch in range(0, test_input.size(0), batch_size):
+            prediction(model, (test_input.narrow(0, batch, batch_size)))
         end_pred_time = time.time()
 
         train_time = end_train_time - start_train_time
@@ -155,6 +160,40 @@ def main():
               '\nTest error {:.02f}% --- Prediction time {:.08f}s'
               .format(train_error, train_time,
                       test_error, prediction_time))
+        # --------------------------------------------------------------------------------------------------
+        # PLOT
+        # --------------------------------------------------------------------------------------------------
+        if isplot:
+            test_predictions = prediction(model, test_input)
+            prediction_errors = test_predictions != test_label_vector
+            test_prediction_errors = test_predictions.clone()
+            test_prediction_errors[prediction_errors] = 2
+
+            plt.figure(figsize=(10, 3))
+            plt.subplot(1, 3, 1)
+            plt.scatter(test_input[:, 0], test_input[:, 1], s=5, c=test_label_vector,
+                        cmap=matplotlib.colors.ListedColormap(['deepskyblue', 'mediumblue']))
+            plt.title('Labels', fontsize=10)
+            plt.gca().set_aspect('equal', adjustable='box')
+            plt.gca().axes.get_xaxis().set_ticks([])
+            plt.gca().axes.get_yaxis().set_ticks([])
+
+            plt.subplot(1, 3, 2)
+            plt.scatter(test_input[:, 0], test_input[:, 1], s=5, c=test_predictions,
+                        cmap=matplotlib.colors.ListedColormap(['deepskyblue', 'mediumblue']))
+            plt.title('Predictions', fontsize=10)
+            plt.gca().set_aspect('equal', adjustable='box')
+            plt.gca().axes.get_xaxis().set_ticks([])
+            plt.gca().axes.get_yaxis().set_ticks([])
+
+            plt.subplot(1, 3, 3)
+            plt.scatter(test_input[:, 0], test_input[:, 1], s=5, c=test_prediction_errors,
+                        cmap=matplotlib.colors.ListedColormap(['deepskyblue', 'mediumblue', 'r']))
+            plt.title('Errors', fontsize=10)
+            plt.gca().set_aspect('equal', adjustable='box')
+            plt.gca().axes.get_xaxis().set_ticks([])
+            plt.gca().axes.get_yaxis().set_ticks([])
+            plt.show()
 
     print('\nTRAIN: Mean {:.02f} --- Std {:.02f} --- time {:.02f}s '
           '\nTEST: Mean {:.02f}% --- Std {:.02f} --- time {:.08f}s'
@@ -167,4 +206,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(isplot=False)

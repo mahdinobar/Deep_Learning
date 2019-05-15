@@ -75,7 +75,7 @@ def main():
     # PARAMETERS
     # --------------------------------------------------------------------------------------------------
     nb_samples = 1000
-    iteration = 100
+    iteration = 10
 
     # Model
     input_dim = 2
@@ -83,7 +83,7 @@ def main():
     hidden_dim = 25
 
     # Training
-    number_epochs = 250
+    number_epochs = 200
     learning_rate = 1e-2
     mini_batch_size = 100
 

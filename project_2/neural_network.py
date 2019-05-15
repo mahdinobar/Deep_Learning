@@ -5,7 +5,8 @@ from module import *
 class Linear(Module):
     def __init__(self, input_dim, output_dim):
         """
-        Class of Linear module
+        Linear module
+        with forward and backward passes
         :param input_dim:
         :param output_dim:
         """

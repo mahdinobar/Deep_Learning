@@ -3,7 +3,11 @@ import math
 
 
 def generate_data(nb_samples):
-    """ Generate dataset """
+    """
+    Generate dataset
+    sample uniformly distributed between [0, 1]
+    with label = 1 if inside disk and label = 0 if outside
+    """
     # samples uniformly distributed between [0, 1]
     inputs = torch.empty(nb_samples, 2).uniform_(0, 1)
 
@@ -15,14 +19,18 @@ def generate_data(nb_samples):
 
 
 def normalization(data):
-    """ Normalization by mean and standard deviation """
+    """
+    Normalization by mean and standard deviation
+    """
     mean_value = data.mean(dim=0)
     std_value = data.std(dim=0)
     return data.sub_(mean_value).div_(std_value)
 
 
 def convert_to_one_hot_labels(inputs):
-    """ Convert target tensor to one hot vector representation """
+    """
+    Convert target tensor to one hot vector representation
+    """
     tmp = torch.FloatTensor(inputs.size(0), inputs.max() + 1).fill_(0)
     tmp.scatter_(1, inputs.view(-1, 1), 1.0)
     return tmp

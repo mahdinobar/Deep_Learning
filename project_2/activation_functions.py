@@ -4,53 +4,55 @@ from module import *
 
 class Relu(Module):
     """
-    Class for ReLU activation function
+    ReLU activation function
+    with forward and backward passes
     """
-    def forward(self, x):
+    def forward(self, inputs):
         """
         Forward computation of ReLU
-        :param x: input
+        :param inputs: input
         :return: result of ReLU Forward pass
         """
-        self.x = x
+        self.inputs = inputs
 
-        temp = torch.zeros_like(x)
-        return torch.max(x, temp)
+        temp = torch.zeros_like(inputs)
+        return torch.max(inputs, temp)
 
     def backward(self, y):
         """
         Backward computation of ReLU
-        :param y:
+        :param y: gradient
         :return: result of ReLU Backward pass
         """
-        temp = y.clone()
+        res = y.clone()
         # zero cells where input value are smaller or equal to 0
-        temp[self.x <= 0] = 0
+        res[self.inputs <= 0] = 0
 
-        return temp
+        return res
 
 
 class Tanh(Module):
     """
-    Class for tanh activation function
+    Tanh activation function
+    with forward and backward passes
     """
-    def forward(self, x):
+    def forward(self, inputs):
         """
         Forward computation of tanh
-        :param x: input
+        :param inputs: input
         :return: result of tanh forward pass
         """
-        self.previous_x = x
+        self.inputs = inputs
 
-        return torch.tanh(x)
+        return torch.tanh(inputs)
 
     def backward(self, y):
         """
         Backward computation of tanh
-        :param y:
+        :param y: gradient
         :return: result of tanh backward pass
         """
-        return (1 - self.previous_x.tanh().pow(2)) * y
+        return (1 - self.inputs.tanh()**2) * y
 
 
 

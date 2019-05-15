@@ -2,60 +2,64 @@ import torch
 from module import *
 
 
-class LossMSE(Module):
+class MSELoss(Module):
     """
-    Class for MSE loss function
+    MSE loss
+    with forward and backward passes
     """
-    def forward(self, x, target):
+    def forward(self, inputs, targets):
         """
         Forward computation of MSE
-        :param x:
-        :param target:
-        :return: result of MSE
+        :param inputs:
+        :param targets:
+        :return:
         """
-        self.x = x
-        self.target = target
+        self.inputs = inputs
+        self.targets = targets
 
-        return torch.mean((x - target)**2)
+        return torch.mean((inputs - targets)**2)
 
     def backward(self):
         """
         Backward computation of MSE
         :return:
         """
-        error = self.x - self.target
+        errors = self.inputs - self.targets
 
-        return 2 * error / (self.target.size(0) * self.target.size(1))
+        return 2 * errors / (self.targets.size(0) * self.targets.size(1))
 
 
-class LossCrossEntropy(Module):
+class CrossEntropyLoss(Module):
     """
-    A class for cross entropy loss function
+    Cross entropy loss function
+    with forward and backward passes
     """
-    def forward(self, x, target):
+    def forward(self, inputs, targets):
         """
-        Forward pass of the cross entropy loss
-        :param x: main input
-        :param target: main output
+        Forward computation of the cross entropy loss
+        :param inputs: main input
+        :param targets: main output
         :return: cross entropy loss
         """
-        self.x = x
-        self.target = target
-        self.n = x.size(0)
+        self.inputs = inputs
+        self.targets = targets
+        self.n = inputs.size(0)
 
-        exp_fyn = x.gather(1, target.view(-1, 1)).exp().squeeze()
-        sigma_exp_fk = x.exp().sum(1)
-
-        loss = (-1. / self.n) * ((exp_fyn / sigma_exp_fk).log().sum())
+        loss = (-1. / self.n) * \
+               ((inputs.gather(1, targets.view(-1, 1)).exp().squeeze() / inputs.exp().sum(1)).log().sum())
 
         return loss
 
     def backward(self):
         """
-        Backward pass of the cross entropy loss
+        Backward computation of the cross entropy loss
         :return:  Gradient of the cross entropy loss with respect to input
         """
-        log_der = (-1 * self.x.exp()) / (self.x.exp().sum(1).view(-1, 1))
-        log_der[torch.Tensor(range(self.x.size(0))),self.target]=log_der[torch.Tensor(range(self.x.size(0))),self.target]+1
-        dL_dx=-(1./self.N)*log_der
-        return dL_dx
+        log_der = (-1 * self.inputs.exp()) / (self.inputs.exp().sum(1).view(-1, 1))
+
+        log_der[torch.LongTensor(list(range(self.inputs.size(0)))), self.targets] = \
+            log_der[torch.LongTensor(list(range(self.inputs.size(0)))), self.targets] + 1
+
+        dl_dx = -(1./self.inputs.size(0)) * log_der
+
+        return dl_dx

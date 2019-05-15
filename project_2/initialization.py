@@ -10,9 +10,9 @@ def xavier_initialization(w, b, activation_type):
     :param activation_type: the type of activation function
     :return:
     """
-    # GAIN
+    # calculate GAIN
     if activation_type == 'relu':
-        gain = math.sqrt(2)
+        gain = math.sqrt(2.)
     elif activation_type == 'tanh':
         gain = 5.0 / 3.
     else:
