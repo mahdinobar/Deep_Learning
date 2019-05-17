@@ -65,7 +65,7 @@ def compute_error(m, inputs, targets, batch_size):
 
 def init_weights(m):
     if type(m) == nn.Linear:
-        nn.init.xavier_normal_(m.weight, gain=nn.init.calculate_gain('relu'))
+        nn.init.xavier_normal_(m.weight, gain=nn.init.calculate_gain('tanh'))
         m.bias.data.fill_(0.01)
 
 

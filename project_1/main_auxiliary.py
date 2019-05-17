@@ -22,7 +22,7 @@ class AuxiliaryModel(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
             # maxpooling output -> 32x6x6
-            nn.Dropout2d(p=0.4),
+            nn.Dropout2d(p=0.3),
 
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, padding=1),
             # conv output -> 64x4x4
@@ -30,7 +30,7 @@ class AuxiliaryModel(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
             # maxpooling output -> 64x2x2
-            nn.Dropout2d(p=0.4),
+            nn.Dropout2d(p=0.3),
         )
 
         self.linear_1 = nn.Sequential(
@@ -38,7 +38,7 @@ class AuxiliaryModel(nn.Module):
             nn.Linear(in_features=256, out_features=64),
             nn.ReLU(),
             # linear output -> 64x1
-            nn.Dropout(p=0.4),
+            nn.Dropout(p=0.3),
             nn.Linear(in_features=64, out_features=10),
             nn.Softmax(dim=1),
             # output -> 10x1
@@ -178,7 +178,7 @@ def test(model, loader):
     return 100 * correct / total
 
 
-def main():
+def main(isplot=False):
     """
         Main function
         - Load data
@@ -187,91 +187,111 @@ def main():
     """
     # ----- PARAMETER --------------------
     nb_pair = 1000
-    batch_size = 50
-    nb_epochs = 300
-    learning_rate = 1e-3
-    nb_iteration = 3
+    batch_size = [100]
+    nb_epochs = [200]
+    learning_rate = [5e-3]
+    nb_iteration = 10
 
-    saved_train_accuracy = []
-    saved_test_accuracy = []
-    for i in range(nb_iteration):
-        print('\n------- ITERATION - %d -------' % (i + 1))
+    for ep in nb_epochs:
+        for bs in batch_size:
+            for lr in learning_rate:
 
-        # ----- DATASET --------------------
-        train_input, train_target, train_class, test_input, test_target, test_class = prologue.generate_pair_sets(
-            nb_pair)
+                saved_train_accuracy = []
+                saved_test_accuracy = []
+                for i in range(nb_iteration):
+                    print('\n------- ITERATION - %d -------' % (i + 1))
 
-        # Normalize
-        train_input = train_input / 255
-        test_input = test_input / 255
+                    # ----- DATASET --------------------
+                    train_input, train_target, train_class, test_input, test_target, test_class = prologue.generate_pair_sets(
+                        nb_pair)
 
-        # Split between training (80%) and validation (20%)
-        train_dataset = TensorDataset(train_input, train_class, train_target)
-        train_len = int(0.8 * train_dataset.__len__())
-        validation_len = train_dataset.__len__() - train_len
-        train_data, validation_data = random_split(train_dataset, lengths=[train_len, validation_len])
-        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=2)
-        validation_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=False, num_workers=2)
+                    # Normalize
+                    train_input = train_input / 255
+                    test_input = test_input / 255
 
-        # Test
-        test_dataset = TensorDataset(test_input, test_class, test_target)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+                    # Split between training (80%) and validation (20%)
+                    train_dataset = TensorDataset(train_input, train_class, train_target)
+                    train_len = int(0.8 * train_dataset.__len__())
+                    validation_len = train_dataset.__len__() - train_len
+                    train_data, validation_data = random_split(train_dataset, lengths=[train_len, validation_len])
+                    train_loader = DataLoader(train_data, batch_size=bs, shuffle=False, num_workers=2)
+                    validation_loader = DataLoader(validation_data, batch_size=bs, shuffle=False, num_workers=2)
 
-        # ----- MODEL --------------------
-        model = AuxiliaryModel()
+                    # Test
+                    test_dataset = TensorDataset(test_input, test_class, test_target)
+                    test_loader = DataLoader(test_dataset, batch_size=bs, shuffle=False, num_workers=2)
 
-        # Optimizer
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+                    # ----- MODEL --------------------
+                    model = AuxiliaryModel()
 
-        # Loss function
-        criterion_digit = nn.CrossEntropyLoss()
-        criterion = nn.CrossEntropyLoss()
+                    # Optimizer
+                    optimizer = optim.Adam(model.parameters(), lr=lr)
 
-        # ----- TRAINING + VALIDATION --------------------
-        nb_batch_train = train_len // batch_size
-        nb_batch_validation = validation_len // batch_size
-        train_losses = []
-        train_accuracies = []
-        validation_losses = []
-        validation_accuracies = []
+                    # Loss function
+                    criterion_digit = nn.CrossEntropyLoss()
+                    criterion = nn.CrossEntropyLoss()
 
-        for epoch in range(nb_epochs):
-            # TRAIN
-            train_loss, train_accuracy = train(train_loader, model, criterion, criterion_digit, optimizer, nb_batch_train)
-            train_losses.append(train_loss)
-            train_accuracies.append(train_accuracy)
-            # VALIDATION
-            validation_loss, validation_accuracy = validation(validation_loader, model, criterion, criterion_digit, nb_batch_validation)
-            validation_losses.append(validation_loss)
-            validation_accuracies.append(validation_accuracy)
+                    # ----- TRAINING + VALIDATION --------------------
+                    nb_batch_train = train_len // bs
+                    nb_batch_validation = validation_len // bs
+                    train_losses = []
+                    train_accuracies = []
+                    validation_losses = []
+                    validation_accuracies = []
 
-            # Print progress
-            if (epoch + 1) % (nb_epochs / 10) == 0:
-                print('Epoch [%d/%d] --- TRAIN: Loss: %.4f - Accuracy: %d%% --- '
-                      'VALIDATION: Loss: %.4f - Accuracy: %d%%' %
-                      (epoch + 1, nb_epochs, train_loss, train_accuracy, validation_loss, validation_accuracy))
+                    for epoch in range(ep):
+                        # TRAIN
+                        train_loss, train_accuracy = train(train_loader, model, criterion, criterion_digit, optimizer, nb_batch_train)
+                        train_losses.append(train_loss)
+                        train_accuracies.append(train_accuracy)
+                        # VALIDATION
+                        validation_loss, validation_accuracy = validation(validation_loader, model, criterion, criterion_digit, nb_batch_validation)
+                        validation_losses.append(validation_loss)
+                        validation_accuracies.append(validation_accuracy)
 
-        plt.figure()
-        plt.plot(train_losses, label='Train loss')
-        plt.plot(validation_losses, label='Validation loss')
-        plt.legend(frameon=False)
+                        """
+                        # Print progress
+                        if (epoch + 1) % (ep / 10) == 0:
+                            print('Epoch [%d/%d] --- TRAIN: Loss: %.4f - Accuracy: %d%% --- '
+                                  'VALIDATION: Loss: %.4f - Accuracy: %d%%' %
+                                  (epoch + 1, ep, train_loss, train_accuracy, validation_loss, validation_accuracy))
+                        """
+                    if isplot:
+                        # ----- PLOT --------------------
+                        plt.figure()
+                        plt.subplot(1, 2, 1)
+                        plt.plot(train_losses, label='Train loss')
+                        plt.plot(validation_losses, label='Validation loss')
+                        plt.ylabel('Loss')
+                        plt.xlabel('Epoch')
+                        plt.legend(frameon=False)
+                        plt.subplot(1, 2, 2)
+                        plt.plot(train_accuracies, label='Train accuracy')
+                        plt.plot(validation_accuracies, label='Validation accuracy')
+                        plt.ylabel('Accuracy')
+                        plt.xlabel('Epoch')
+                        plt.legend(frameon=False)
 
-        # ----- TEST --------------------
-        train_accuracy = test(model, train_loader)
-        saved_train_accuracy.append(train_accuracy)
-        test_accuracy = test(model, test_loader)
-        saved_test_accuracy.append(test_accuracy)
+                    # ----- TEST --------------------
+                    train_accuracy = test(model, train_loader)
+                    saved_train_accuracy.append(train_accuracy)
+                    test_accuracy = test(model, test_loader)
+                    saved_test_accuracy.append(test_accuracy)
 
-        print('Accuracy on train set: %d %%' % train_accuracy)
-        print('Accuracy on test set: %d %%' % test_accuracy)
+                    print('Accuracy on train set: %d %%' % train_accuracy)
+                    print('Accuracy on test set: %d %%' % test_accuracy)
 
-    # ----- MEAN + STD OVER ITERATION --------------------
-    print('\nMean train accuracy {:.02f} --- Std train accuracy {:.02f} '
-          '\nMean test accuracy {:.02f} --- Std test accuracy {:.02f}'
-          .format(torch.FloatTensor(saved_train_accuracy).mean(), torch.FloatTensor(saved_train_accuracy).std(),
-                  torch.FloatTensor(saved_test_accuracy).mean(), torch.FloatTensor(saved_test_accuracy).std()))
+                # ----- MEAN + STD OVER ITERATION --------------------
+                print('\n------- NB EPOCHS - %d -------' % ep)
+                print('------- LEARNING RATE - %f -------' % lr)
+                print('------- BATCH SIZE - %d -------' % bs)
+
+                print('Mean train accuracy {:.02f} --- Std train accuracy {:.02f} '
+                      '\nMean test accuracy {:.02f} --- Std test accuracy {:.02f}'
+                      .format(torch.FloatTensor(saved_train_accuracy).mean(), torch.FloatTensor(saved_train_accuracy).std(),
+                              torch.FloatTensor(saved_test_accuracy).mean(), torch.FloatTensor(saved_test_accuracy).std()))
 
 
 if __name__ == '__main__':
-    main()
+    main(isplot=True)
     plt.show()
