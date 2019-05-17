@@ -128,7 +128,7 @@ def main():
     batch_size = 10
     nb_epochs = 100
     learning_rate = 1e-3
-    nb_iteration = 3
+    nb_iteration = 10
 
     saved_train_accuracy = []
     saved_test_accuracy = []

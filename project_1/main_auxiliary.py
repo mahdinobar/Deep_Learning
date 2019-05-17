@@ -249,13 +249,12 @@ def main(isplot=False):
                         validation_losses.append(validation_loss)
                         validation_accuracies.append(validation_accuracy)
 
-                        """
                         # Print progress
                         if (epoch + 1) % (ep / 10) == 0:
                             print('Epoch [%d/%d] --- TRAIN: Loss: %.4f - Accuracy: %d%% --- '
                                   'VALIDATION: Loss: %.4f - Accuracy: %d%%' %
                                   (epoch + 1, ep, train_loss, train_accuracy, validation_loss, validation_accuracy))
-                        """
+
                     if isplot:
                         # ----- PLOT --------------------
                         plt.figure()

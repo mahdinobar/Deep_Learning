@@ -85,7 +85,7 @@ def main():
     # Training
     number_epochs = 200
     learning_rate = 1e-2
-    mini_batch_size = 100
+    mini_batch_size = 10
 
     saved_train_error = []
     saved_train_time = []

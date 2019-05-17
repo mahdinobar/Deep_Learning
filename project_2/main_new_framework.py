@@ -88,7 +88,7 @@ def main(isplot=False):
     # Training
     nb_epochs = 200
     learning_rate = 1e-2
-    batch_size = 100
+    batch_size = 10
 
     saved_train_error = []
     saved_train_time = []
